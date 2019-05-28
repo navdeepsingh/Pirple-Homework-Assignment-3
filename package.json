@@ -18,5 +18,13 @@
   "bugs": {
     "url": "https://github.com/navdeepsingh/Pirple-Homework-Assignment-3/issues"
   },
-  "homepage": "https://github.com/navdeepsingh/Pirple-Homework-Assignment-3#readme"
+  "homepage": "https://github.com/navdeepsingh/Pirple-Homework-Assignment-3#readme",
+  "devDependencies": {
+    "eslint": "^5.16.0",
+    "eslint-config-airbnb-base": "^13.1.0",
+    "eslint-config-google": "^0.13.0",
+    "eslint-config-prettier": "^4.3.0",
+    "eslint-plugin-import": "^2.17.3",
+    "stylelint-config-standard": "^18.3.0"
+  }
 }
