@@ -6,3 +6,6 @@
 body {
   padding-top: 56px;
 }
+body.signup form {
+  padding: 40px;
+}
