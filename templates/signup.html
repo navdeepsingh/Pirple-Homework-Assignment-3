@@ -1,4 +1,17 @@
-<form class="form-horizontal" role="form" method="POST" action="/register">
+<form class="form-horizontal" role="form" method="POST" action="/api/users" id="signup">
+  <div class="row">
+    <div class="col-md-3"></div>
+    <div class="col-md-9">
+      <div class="form-control-feedback">
+        <span class="formError text-danger align-middle">
+          Example Error Message
+        </span>
+        <span class="formSuccess text-success align-middle">
+          <!-- Example Error Message -->
+        </span>
+      </div>
+    </div>
+  </div>
   <div class="row">
     <div class="col-md-3"></div>
     <div class="col-md-6">
@@ -62,7 +75,7 @@
     <div class="col-md-3">
       <div class="form-control-feedback">
         <span class="text-danger align-middle">
-          <i class="fa fa-close"> Example Error Message</i>
+          <!-- <i class="fa fa-close"> Example Error Message</i> -->
         </span>
       </div>
     </div>
@@ -79,6 +92,34 @@
           </div>
           <input type="password" name="password-confirmation" class="form-control" id="password-confirm"
             placeholder="Password" required>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="row">
+    <div class="col-md-3 field-label-responsive">
+      <label for="address">Address</label>
+    </div>
+    <div class="col-md-6">
+      <div class="form-group">
+        <div class="input-group mb-2 mr-sm-2 mb-sm-0">
+          <div class="input-group-addon" style="width: 2.6rem">
+            <i class="fa fa-card"></i>
+          </div>
+          <textarea name="address" id="address" class="form-control"></textarea>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="row">
+    <div class="col-md-3 field-label-responsive"></div>
+    <div class="col-md-6">
+      <div class="form-group">
+        <div class="input-group mb-2 mr-sm-2 mb-sm-0">
+          <div class="input-group-addon" style="width: 2.6rem">
+            <input type="checkbox" name="tosAgreement" class="form-control" id="tosAgreement" value="agree" required>
+          </div>
+          <label for="tosAgreement">I agree to the terms &amp; conditions.</label>
         </div>
       </div>
     </div>
