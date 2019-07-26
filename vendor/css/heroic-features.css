@@ -6,6 +6,16 @@
 body {
   padding-top: 56px;
 }
-body.signup form {
+body form {
   padding: 40px;
+}
+body li.loggedIn {
+  display: none;
+}
+
+body.loggedIn li.loggedIn {
+  display: block;
+}
+body.loggedIn li.loggedOut {
+  display: none;
 }

@@ -28,18 +28,16 @@ app.client.request = function (headers, path, method, queryStringObject, payload
   // For each query string parameter sent, add it to the path
   var requestUrl = path;
   var counter = 0;
-  if (queryStringObject.length > 0) {
-    var requestUrl = requestUrl + '?';
-    for (var queryKey in queryStringObject) {
-      if (queryStringObject.hasOwnProperty(queryKey)) {
-        counter++;
-        // If at least one query string parameter has already been added, preprend new ones with an ampersand
-        if (counter > 1) {
-          requestUrl += '&';
-        }
-        // Add the key and value
-        requestUrl += queryKey + '=' + queryStringObject[queryKey];
+  var requestUrl = requestUrl + '?';
+  for (var queryKey in queryStringObject) {
+    if (queryStringObject.hasOwnProperty(queryKey)) {
+      counter++;
+      // If at least one query string parameter has already been added, preprend new ones with an ampersand
+      if (counter > 1) {
+        requestUrl += '&';
       }
+      // Add the key and value
+      requestUrl += queryKey + '=' + queryStringObject[queryKey];
     }
   }
 
@@ -106,17 +104,23 @@ app.logUserOut = function (redirectUser) {
   // Get the current token id
   var tokenId = typeof (app.config.sessionToken.id) == 'string' ? app.config.sessionToken.id : false;
 
+  console.log(app.config.sessionToken);
+
+
   // Send the current token to the tokens endpoint to delete it
   var queryStringObject = {
     'id': tokenId
   };
-  app.client.request(undefined, 'api/tokens', 'DELETE', queryStringObject, undefined, function (statusCode, responsePayload) {
+
+  console.log(queryStringObject);
+
+  app.client.request(undefined, 'api/logout', 'delete', queryStringObject, undefined, function (statusCode, responsePayload) {
     // Set the app.config token as false
     app.setSessionToken(false);
 
     // Send the user to the logged out page
     if (redirectUser) {
-      window.location = '/session/deleted';
+      window.location = '/';
     }
 
   });
@@ -183,7 +187,7 @@ app.bindForms = function () {
 
 
         // If the method is DELETE, the payload should be a queryStringObject instead
-        var queryStringObject = method == 'DELETE' ? payload : {};
+        var queryStringObject = method == 'delete' ? payload : {};
 
 
 
@@ -243,14 +247,14 @@ app.formResponseProcessor = function (formId, requestPayload, responsePayload) {
       } else {
         // If successful, set the token and redirect the user
         app.setSessionToken(newResponsePayload);
-        window.location = '/items/all';
+        window.location = '/menu';
       }
     });
   }
   // If login was successful, set the token in localstorage and redirect the user
   if (formId == 'login') {
     app.setSessionToken(responsePayload);
-    window.location = '/items/all';
+    window.location = '/menu';
   }
 
   // If forms saved successfully and they have success messages, show them
@@ -540,9 +544,6 @@ app.init = function () {
 
   // Get the token from localstorage
   app.getSessionToken();
-
-  // Renew token
-  app.tokenRenewalLoop();
 
   // Load data on page
   app.loadDataOnPage();
