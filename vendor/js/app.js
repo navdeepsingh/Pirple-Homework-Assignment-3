@@ -44,7 +44,7 @@ app.client.request = function (headers, path, method, queryStringObject, payload
   // Form the http request as a JSON type
   var xhr = new XMLHttpRequest();
   xhr.open(method, requestUrl, true);
-  xhr.setRequestHeader("Content-type", "application/json");
+  xhr.setRequestHeader("Content-type", 'application/json');
 
   // For each header sent, add it to the request
   for (var headerKey in headers) {
@@ -104,15 +104,10 @@ app.logUserOut = function (redirectUser) {
   // Get the current token id
   var tokenId = typeof (app.config.sessionToken.id) == 'string' ? app.config.sessionToken.id : false;
 
-  console.log(app.config.sessionToken);
-
-
   // Send the current token to the tokens endpoint to delete it
   var queryStringObject = {
     'id': tokenId
   };
-
-  console.log(queryStringObject);
 
   app.client.request(undefined, 'api/logout', 'delete', queryStringObject, undefined, function (statusCode, responsePayload) {
     // Set the app.config token as false
@@ -185,12 +180,8 @@ app.bindForms = function () {
           }
         }
 
-
         // If the method is DELETE, the payload should be a queryStringObject instead
         var queryStringObject = method == 'delete' ? payload : {};
-
-
-
 
         // Call the API
         app.client.request(undefined, path, method, queryStringObject, payload, function (statusCode, responsePayload) {
@@ -322,40 +313,6 @@ app.setSessionToken = function (token) {
   }
 };
 
-// Renew the token
-app.renewToken = function (callback) {
-  var currentToken = typeof (app.config.sessionToken) == 'object' ? app.config.sessionToken : false;
-  if (currentToken) {
-    // Update the token with a new expiration
-    var payload = {
-      'id': currentToken.id,
-      'extend': true,
-    };
-    app.client.request(undefined, 'api/tokens', 'PUT', undefined, payload, function (statusCode, responsePayload) {
-      // Display an error on the form if needed
-      if (statusCode == 200) {
-        // Get the new token details
-        var queryStringObject = { 'id': currentToken.id };
-        app.client.request(undefined, 'api/tokens', 'GET', queryStringObject, undefined, function (statusCode, responsePayload) {
-          // Display an error on the form if needed
-          if (statusCode == 200) {
-            app.setSessionToken(responsePayload);
-            callback(false);
-          } else {
-            app.setSessionToken(false);
-            callback(true);
-          }
-        });
-      } else {
-        app.setSessionToken(false);
-        callback(true);
-      }
-    });
-  } else {
-    app.setSessionToken(false);
-    callback(true);
-  }
-};
 
 // Load data on the page
 app.loadDataOnPage = function () {
@@ -522,16 +479,6 @@ app.loadChecksEditPage = function () {
   }
 };
 
-// Loop to renew token often
-app.tokenRenewalLoop = function () {
-  setInterval(function () {
-    app.renewToken(function (err) {
-      if (!err) {
-        console.log("Token renewed successfully @ " + Date.now());
-      }
-    });
-  }, 1000 * 60);
-};
 
 // Init (bootstrapping)
 app.init = function () {
