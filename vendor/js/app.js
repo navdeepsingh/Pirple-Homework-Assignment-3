@@ -235,6 +235,8 @@ app.formResponseProcessor = function (formId, requestPayload, responsePayload) {
         // Show (unhide) the form error field on the form
         document.querySelector("#" + formId + " .formError").style.display = 'block';
 
+        document.querySelector("#" + formId + " .formError").focus();
+
       } else {
         // If successful, set the token and redirect the user
         app.setSessionToken(newResponsePayload);
