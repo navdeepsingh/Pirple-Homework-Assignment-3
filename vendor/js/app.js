@@ -115,7 +115,7 @@ app.logUserOut = function (redirectUser) {
 
     // Send the user to the logged out page
     if (redirectUser) {
-      window.location = '/';
+      window.location = '/login';
     }
 
   });
@@ -338,23 +338,34 @@ app.loadMenuPage = function () {
     var queryStringObject = {
       'email': email
     };
+    const menuItemsWrapper = document.querySelector('.menu-items');
+
     app.client.request(undefined, 'api/menu', 'GET', queryStringObject, undefined, function (statusCode, responsePayload) {
+
       if (statusCode == 200) {
 
         // Determine how many checks the user has
-        var menuItems = typeof (responsePayload) == 'object' && responsePayload instanceof Array && responsePayload.length > 0 ? responsePayload : [];
-        const menuItemsWrapper = document.querySelector('.menu-items');
-        menuItemsWrapper.innerHTML = 'test'; // <---------- Start from here
-        if (menuItems.length > 0) {
+        var menuItems = typeof (responsePayload) == 'object' ? responsePayload : {};
+        if (Object.keys(menuItems).length > 0) {
 
-
-
-          //console.log(responsePayload, menuItems.length);
-          for (var variable in responsePayload) {
-            if (object.hasOwnProperty(variable)) {
-              menuItemsWrapper.innerHTML = variable;
-            }
+          menuItemsHTML = '<div class="row">';
+          for (const key of Object.keys(responsePayload)) {
+            menuItemsHTML += `<div class="col-lg-4 col-md-6 mb-4">
+                                            <div class="card h-100">
+                                              <div class="card-body">
+                                                <h4 class="card-title">
+                                                  ${responsePayload[key].name}
+                                                </h4>
+                                                <h5>$${responsePayload[key].price}</h5>
+                                              </div>
+                                              <div class="card-footer">
+                                                <button class="btn btn-primary btn-lg">ADD TO CART</button>
+                                              </div>
+                                            </div>
+                                          </div>`;
           }
+          menuItemsHTML += '</div>';
+          menuItemsWrapper.innerHTML = menuItemsHTML;
 
         } else {
           // Show 'you have no checks' message
