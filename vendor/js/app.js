@@ -134,27 +134,40 @@ app.bindForms = function () {
         var formId = this.id;
         var path = this.action;
         var method = this.method.toLowerCase();
+        var payload = {};
 
-        // Hide the error message (if it's currently shown due to a previous error)
-        document.querySelector("#" + formId + " .formError").style.display = 'none';
+        if (formId !== 'cart') {
 
-        // Hide the success message (if it's currently shown due to a previous error)
-        if (document.querySelector("#" + formId + " .formSuccess")) {
-          document.querySelector("#" + formId + " .formSuccess").style.display = 'none';
+          // Hide the error message (if it's currently shown due to a previous error)
+          document.querySelector("#" + formId + " .formError").style.display = 'none';
+
+          // Hide the success message (if it's currently shown due to a previous error)
+          if (document.querySelector("#" + formId + " .formSuccess")) {
+            document.querySelector("#" + formId + " .formSuccess").style.display = 'none';
+          }
         }
 
+        if (formId == 'cart') {
+          const cartTokenString = localStorage.getItem('cartToken');
+          if (typeof (cartTokenString) == 'string') {
+            var cartToken = JSON.parse(cartTokenString);
+            method = 'put';
+            payload['id'] = cartToken.id;
+            payload['action'] = 'update';
+          }
+        }
 
         // Turn the inputs into a payload
-        var payload = {};
         var elements = this.elements;
         for (var i = 0; i < elements.length; i++) {
           if (elements[i].type !== 'submit') {
             // Determine class of element and set value accordingly
             var classOfElement = typeof (elements[i].classList.value) == 'string' && elements[i].classList.value.length > 0 ? elements[i].classList.value : '';
-            var valueOfElement = elements[i].type == 'checkbox' && classOfElement.indexOf('multiselect') == -1 ? elements[i].checked : classOfElement.indexOf('intval') == -1 ? elements[i].value : parseInt(elements[i].value);
+            var valueOfElement = classOfElement.indexOf('intval') == -1 ? elements[i].value : parseInt(elements[i].value);
             var elementIsChecked = elements[i].checked;
             // Override the method of the form if the input's name is _method
             var nameOfElement = elements[i].name;
+
             if (nameOfElement == '_method') {
               method = valueOfElement;
             } else {
@@ -191,9 +204,7 @@ app.bindForms = function () {
             if (statusCode == 403) {
               // log the user out
               app.logUserOut();
-
             } else {
-
               // Try to get the error from the api, or set a default error message
               var error = typeof (responsePayload.Error) == 'string' ? responsePayload.Error : 'An error has occured, please try again';
 
@@ -203,6 +214,7 @@ app.bindForms = function () {
               // Show (unhide) the form error field on the form
               document.querySelector("#" + formId + " .formError").style.display = 'block';
             }
+
           } else {
             // If successful, send to form response processor
             app.formResponseProcessor(formId, payload, responsePayload);
@@ -250,26 +262,10 @@ app.formResponseProcessor = function (formId, requestPayload, responsePayload) {
     window.location = '/menu';
   }
 
-  // If forms saved successfully and they have success messages, show them
-  var formsWithSuccessMessages = ['accountEdit1', 'accountEdit2', 'checksEdit1'];
-  if (formsWithSuccessMessages.indexOf(formId) > -1) {
-    document.querySelector("#" + formId + " .formSuccess").style.display = 'block';
-  }
-
-  // If the user just deleted their account, redirect them to the account-delete page
-  if (formId == 'accountEdit3') {
-    app.logUserOut(false);
-    window.location = '/account/deleted';
-  }
-
-  // If the user just created a new check successfully, redirect back to the dashboard
-  if (formId == 'checksCreate') {
-    window.location = '/checks/all';
-  }
-
-  // If the user just deleted a check, redirect them to the dashboard
-  if (formId == 'checksEdit2') {
-    window.location = '/checks/all';
+  // If account creation was successful, try to immediately log the user in
+  if (formId == 'cart') {
+    app.setCartSession(responsePayload);
+    window.location = '/cart';
   }
 
 };
@@ -314,6 +310,11 @@ app.setSessionToken = function (token) {
     app.setLoggedInClass(false);
   }
 };
+// Set the session for cart to make PUT request if cart already created
+app.setCartSession = (cartSessionData) => {
+  var tokenString = JSON.stringify(cartSessionData);
+  localStorage.setItem('cartToken', tokenString);
+}
 
 
 // Load data on the page
@@ -351,22 +352,25 @@ app.loadMenuPage = function () {
           menuItemsHTML = '<div class="row">';
           for (const key of Object.keys(responsePayload)) {
             menuItemsHTML += `<div class="col-lg-4 col-md-6 mb-4">
-                                            <div class="card h-100">
-                                              <div class="card-body">
-                                                <h4 class="card-title">
-                                                  ${responsePayload[key].name}
-                                                </h4>
-                                                <h5>$${responsePayload[key].price}</h5>
-                                              </div>
-                                              <div class="card-footer">
-                                                <button class="btn btn-primary btn-lg">ADD TO CART</button>
-                                              </div>
-                                            </div>
-                                          </div>`;
+              <form role="form" method="POST" action="/api/cart" id="cart">
+                <div class="card h-100">
+                  <div class="card-body">
+                    <h4 class="card-title">
+                      ${responsePayload[key].name}
+                    </h4>
+                    <h5>$${responsePayload[key].price}</h5>
+                  </div>
+                  <div class="card-footer">
+                      <input type="hidden" name="itemId" value="${key}" class="intval" />
+                      <button class="btn btn-primary btn-lg" type="submit">ADD TO CART</button>
+                  </div>
+                </div>
+              </form>  
+            </div>`;
           }
           menuItemsHTML += '</div>';
           menuItemsWrapper.innerHTML = menuItemsHTML;
-
+          app.bindForms();
         } else {
           // Show 'you have no checks' message
           document.getElementById("noItemsMessage").style.display = 'block';
@@ -426,19 +430,14 @@ app.loadChecksEditPage = function () {
 
 // Init (bootstrapping)
 app.init = function () {
-
   // Bind all form submissions
   app.bindForms();
-
   // Bind logout logout button
   app.bindLogoutButton();
-
   // Get the token from localstorage
   app.getSessionToken();
-
   // Load data on page
   app.loadDataOnPage();
-
 };
 
 // Call the init processes after the window loads
