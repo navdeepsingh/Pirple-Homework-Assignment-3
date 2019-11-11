@@ -195,6 +195,8 @@ app.bindForms = function () {
 
         // If the method is DELETE, the payload should be a queryStringObject instead
         var queryStringObject = method == 'delete' ? payload : {};
+        console.log(formId);
+
 
         // Call the API
         app.client.request(undefined, path, method, queryStringObject, payload, function (statusCode, responsePayload) {
@@ -207,12 +209,11 @@ app.bindForms = function () {
             } else {
               // Try to get the error from the api, or set a default error message
               var error = typeof (responsePayload.Error) == 'string' ? responsePayload.Error : 'An error has occured, please try again';
-
               // Set the formError field with the error text
               document.querySelector("#" + formId + " .formError").innerHTML = error;
-
               // Show (unhide) the form error field on the form
               document.querySelector("#" + formId + " .formError").style.display = 'block';
+              document.querySelector("#" + formId + " .formError").focus;
             }
 
           } else {
@@ -310,6 +311,7 @@ app.setSessionToken = function (token) {
     app.setLoggedInClass(false);
   }
 };
+
 // Set the session for cart to make PUT request if cart already created
 app.setCartSession = (cartSessionData) => {
   var tokenString = JSON.stringify(cartSessionData);
@@ -323,14 +325,16 @@ app.loadDataOnPage = function () {
   var bodyClasses = document.querySelector("body").classList;
   var primaryClass = typeof (bodyClasses[0]) == 'string' ? bodyClasses[0] : false;
 
-  // Logic for account settings page
   if (primaryClass == 'menu') {
     app.loadMenuPage();
   }
 
+  if (primaryClass == 'cart') {
+    app.loadCartPage();
+  }
+
 };
 
-// Load the dashboard page specifically
 app.loadMenuPage = function () {
   // Get the phone number from the current token, or log the user out if none is there
   var email = typeof (app.config.sessionToken.email) == 'string' ? app.config.sessionToken.email : false;
@@ -351,8 +355,7 @@ app.loadMenuPage = function () {
 
           menuItemsHTML = '<div class="row">';
           for (const key of Object.keys(responsePayload)) {
-            menuItemsHTML += `<div class="col-lg-4 col-md-6 mb-4">
-              <form role="form" method="POST" action="/api/cart" id="cart">
+            menuItemsHTML += `<div class="col-lg-4 col-md-6 mb-4">              
                 <div class="card h-100">
                   <div class="card-body">
                     <h4 class="card-title">
@@ -365,7 +368,6 @@ app.loadMenuPage = function () {
                       <button class="btn btn-primary btn-lg" type="submit">ADD TO CART</button>
                   </div>
                 </div>
-              </form>  
             </div>`;
           }
           menuItemsHTML += '</div>';
@@ -380,6 +382,53 @@ app.loadMenuPage = function () {
         app.logUserOut();
       }
     });
+  } else {
+    app.logUserOut();
+  }
+};
+
+app.loadCartPage = function () {
+  // Get the phone number from the current token, or log the user out if none is there
+  var email = typeof (app.config.sessionToken.email) == 'string' ? app.config.sessionToken.email : false;
+  let cartSessionData = typeof (localStorage.getItem('cartToken')) == 'string' ? localStorage.getItem('cartToken') : false;
+  cartSessionData = JSON.parse(cartSessionData);
+
+  if (email) {
+
+    // Fetch the user data
+    var queryStringObject = {
+      'id': cartSessionData.id
+    };
+    console.log(queryStringObject);
+
+    const cartItemsWrapper = document.querySelector('.cartItems');
+
+
+    if (cartSessionData) {
+
+      // Determine how many checks the user has
+      var cartItems = cartSessionData.items
+      cartItemsHTML = '';
+
+      if (cartItems.length > 0) {
+
+        cartItems.forEach(item => {
+          cartItemsHTML += '<tr>';
+          cartItemsHTML += `<td>${item}</td>`;
+          cartItemsHTML += `<td></td>`;
+          cartItemsHTML += `<td></td>`;
+          cartItemsHTML += `<td></td>`;
+          cartItemsHTML += '</tr>';
+        });
+
+        cartItemsWrapper.innerHTML = cartItemsHTML;
+        //     app.bindForms();
+      } else {
+        document.getElementById("noItemsMessage").style.display = 'block';
+      }
+    } else {
+      cartItemsWrapper.innerHTML = '<tr><td colspan="4" class="text-center"> No Item Added in Cart</td></td>'
+    }
   } else {
     app.logUserOut();
   }
